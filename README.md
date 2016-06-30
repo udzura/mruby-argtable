@@ -16,15 +16,23 @@ end
 
 ```ruby
 t = Argtable.new
-t.literal("a", "aaa", "AAA aaa")
-t.literal("b", "bbb", "BBB bbb")
+t.literal("v", "verbose", "You are verbose")
+t.integer("c", "count", "<c>", "My count")
+t.double("s", "seconds", "<t>", "My seconds")
+t.string("n", "name", "<n>", "My name")
 
-t.parse(["prog", "-a"])
-t["a"].count
-#=> 1
+t.parse(["prog", "-c", "9999", "--verbose", "--name=udzura", "-s", "12.25"])
 
-t.parse ["prog", "XXX"]
-#=> prog: unexpected argument "XXX"
+t["v"].count #=> 1, no value
+t["c"].value #=> 9999
+t["n"].value #=> "udzura"
+t["s"].value #=> 12.25
+
+t.glossry
+# -v, --verbose             You are verbose
+# -c, --count=<c>           My count
+# -s, --seconds=<t>         My seconds
+# -n, --name=<n>            My name
 ```
 
 ## License
