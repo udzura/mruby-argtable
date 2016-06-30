@@ -1,6 +1,6 @@
 # mruby-argtable   [![Build Status](https://travis-ci.org/udzura/mruby-argtable.svg?branch=master)](https://travis-ci.org/udzura/mruby-argtable)
 
-Argtable class
+Argtable wrapper
 
 ## install by mrbgems
 
