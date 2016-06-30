@@ -22,3 +22,13 @@ assert("Argtable#integer") do
   t.parse(["prog", "-c", "9999"])
   assert_equal t["c"].value, 9999
 end
+
+assert("Argtable id mixed") do
+  t = Argtable.new
+  t.literal("v", "verbose", "You are verbose")
+  t.integer("c", "count", "<c>", "My count")
+
+  t.parse(["prog", "-c", "9999", "--verbose"])
+  assert_equal t["v"].count, 1
+  assert_equal t["c"].value, 9999
+end
