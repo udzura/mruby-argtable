@@ -10,6 +10,8 @@
 #include "mruby/array.h"
 #include "mruby/data.h"
 #include "mruby/string.h"
+#include "mruby/hash.h"
+#include "mruby/variable.h"
 #include "mruby/error.h"
 #include "mrb_argtable.h"
 #include "argtable3.h"
@@ -19,6 +21,8 @@
 #include <stdbool.h>
 
 #define DONE mrb_gc_arena_restore(mrb, 0);
+
+#pragma GCC diagnostic ignored "-Wdeclaration-after-statement"
 
 typedef struct mrb_argtable_data {
   void **argtable;
@@ -97,7 +101,11 @@ static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
 
   data = (mrb_argtable_data *)mrb_malloc(mrb, sizeof(mrb_argtable_data));
   data->arg_definitions = mrb_ary_new(mrb);
+  data->argtable = NULL;
   DATA_PTR(self) = data;
+
+  mrb_value table = mrb_hash_new(mrb);
+  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@table"), table);
 
   return self;
 }
@@ -147,6 +155,12 @@ static mrb_value mrb_argtable_parse(mrb_state *mrb, mrb_value self)
   mrb_argtable_data *data;
   mrb_int argc;
   mrb_value *argv;
+
+  data = (mrb_argtable_data *)DATA_PTR(self);
+  if(!data->argtable) {
+    mrb_funcall(mrb, self, "compile", 0);
+  }
+
   mrb_get_args(mrb, "a", &argv, &argc);
 
   char **argv_ = (char **)mrb_malloc(mrb, sizeof(char *) * (argc + 1));
@@ -157,7 +171,6 @@ static mrb_value mrb_argtable_parse(mrb_state *mrb, mrb_value self)
   }
   argv_[argc] = NULL;
 
-  data = (mrb_argtable_data *)DATA_PTR(self);
   int nerrors = arg_parse(argc, argv_, data->argtable);
 
   if (nerrors == 0) {
@@ -175,6 +188,9 @@ static mrb_value mrb_argtable_syntax(mrb_state *mrb, mrb_value self)
   mrb_get_args(mrb, "|b", &is_verbose);
 
   data = (mrb_argtable_data *)DATA_PTR(self);
+  if(!data->argtable) {
+    mrb_funcall(mrb, self, "compile", 0);
+  }
 
   if (is_verbose) {
     arg_print_syntaxv(stderr, data->argtable, " ");
@@ -188,6 +204,9 @@ static mrb_value mrb_argtable_syntax(mrb_state *mrb, mrb_value self)
 static mrb_value mrb_argtable_glossary(mrb_state *mrb, mrb_value self)
 {
   mrb_argtable_data *data = (mrb_argtable_data *)DATA_PTR(self);
+  if(!data->argtable) {
+    mrb_funcall(mrb, self, "compile", 0);
+  }
   arg_print_glossary(stderr, data->argtable, " %-25s %s\n");
 
   return mrb_nil_value();
@@ -238,7 +257,7 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
     *arg_lit_c /* , *arg_int_c, *arg_dbl_c, *arg_str_c */;
   argtable = mrb_define_class(mrb, "Argtable", mrb->object_class);
   mrb_define_method(mrb, argtable, "initialize", mrb_argtable_init, MRB_ARGS_NONE());
-  mrb_define_method(mrb, argtable, "push",       mrb_argtable_push, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, argtable, "__push__",   mrb_argtable_push, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, argtable, "compile",    mrb_argtable_compile, MRB_ARGS_NONE());
   mrb_define_method(mrb, argtable, "parse",      mrb_argtable_parse, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, argtable, "help",       mrb_argtable_syntax, MRB_ARGS_ARG(0, 1));

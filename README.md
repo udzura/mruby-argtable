@@ -15,17 +15,15 @@ end
 ## example
 
 ```ruby
-a = Argtable::Literal.new("a", "aaa", "aaa aaa")
-b = Argtable::Literal.new("b", "bbb", "bbb bbb")
 t = Argtable.new
-t.push a; t.push b
-t.compile
+t.literal("a", "aaa", "AAA aaa")
+t.literal("b", "bbb", "BBB bbb")
 
 t.parse(["prog", "-a"])
-a.count
+t["a"].count
 #=> 1
 
-t.parse ["prog", "-b", "XXX"]
+t.parse ["prog", "XXX"]
 #=> prog: unexpected argument "XXX"
 ```
 
