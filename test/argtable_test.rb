@@ -1,4 +1,4 @@
-assert("Argtable#parse/#literal") do
+assert("Argtable#literal") do
   t = Argtable.new
   t.literal("a", "aaa", "AAA aaa")
   t.literal("b", "bbb", "BBB bbb")
@@ -33,7 +33,7 @@ assert("Argtable#integer will raise") do
   end
 end
 
-assert("Argtable id mixed") do
+assert("Argtable#parse when mixed") do
   t = Argtable.new
   t.literal("v", "verbose", "You are verbose")
   t.integer("c", "count", "<c>", "My count")
