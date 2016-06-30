@@ -130,7 +130,7 @@ static mrb_value mrb_arg_dbl_init(mrb_state *mrb, mrb_value self)
   if (data) {
     mrb_free(mrb, data);
   }
-  DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_int);
+  DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_dbl);
   DATA_PTR(self) = NULL;
 
   mrb_get_args(mrb, "z!z!z!z!", &shortopts, &longopts, &datatype, &glossary);
