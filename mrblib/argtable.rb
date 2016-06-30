@@ -19,6 +19,26 @@ class Argtable
     self
   end
 
+  def double(short, long, datatype, glossary)
+    dbl = Double.new(short, long, datatype, glossary)
+    @table[short] = dbl
+    if long
+      @table[long] = dbl
+    end
+    self.__push__ dbl
+    self
+  end
+
+  def string(short, long, datatype, glossary)
+    str = String.new(short, long, datatype, glossary)
+    @table[short] = str
+    if long
+      @table[long] = str
+    end
+    self.__push__ str
+    self
+  end
+
   attr_reader :table
 
   def [](k)

@@ -108,7 +108,7 @@ static mrb_value mrb_arg_int_init(mrb_state *mrb, mrb_value self)
   return self;
 }
 
-static mrb_value mrb_arg_int_ival(mrb_state *mrb, mrb_value self)
+static mrb_value mrb_arg_int_val(mrb_state *mrb, mrb_value self)
 {
   arg_int *data;
   mrb_int idx = 0;
@@ -119,6 +119,72 @@ static mrb_value mrb_arg_int_ival(mrb_state *mrb, mrb_value self)
   }
 
   return mrb_fixnum_value(data->definition->ival[idx]);
+}
+
+static mrb_value mrb_arg_dbl_init(mrb_state *mrb, mrb_value self)
+{
+  arg_dbl *data;
+  char *shortopts, *longopts, *datatype, *glossary;
+
+  data = (arg_dbl *)DATA_PTR(self);
+  if (data) {
+    mrb_free(mrb, data);
+  }
+  DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_int);
+  DATA_PTR(self) = NULL;
+
+  mrb_get_args(mrb, "z!z!z!z!", &shortopts, &longopts, &datatype, &glossary);
+  data = (arg_dbl *)mrb_malloc(mrb, sizeof(arg_dbl));
+  data->definition = arg_dbl0(shortopts, longopts, datatype, glossary);
+  DATA_PTR(self) = data;
+
+  return self;
+}
+
+static mrb_value mrb_arg_dbl_val(mrb_state *mrb, mrb_value self)
+{
+  arg_dbl *data;
+  mrb_int idx = 0;
+  data = (arg_dbl *)DATA_PTR(self);
+  mrb_get_args(mrb, "|i", &idx);
+  if(idx >= data->definition->count) {
+    mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid index");
+  }
+
+  return mrb_float_value(mrb, (float)data->definition->dval[idx]);
+}
+
+static mrb_value mrb_arg_str_init(mrb_state *mrb, mrb_value self)
+{
+  arg_str *data;
+  char *shortopts, *longopts, *datatype, *glossary;
+
+  data = (arg_str *)DATA_PTR(self);
+  if (data) {
+    mrb_free(mrb, data);
+  }
+  DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_str);
+  DATA_PTR(self) = NULL;
+
+  mrb_get_args(mrb, "z!z!z!z!", &shortopts, &longopts, &datatype, &glossary);
+  data = (arg_str *)mrb_malloc(mrb, sizeof(arg_str));
+  data->definition = arg_str0(shortopts, longopts, datatype, glossary);
+  DATA_PTR(self) = data;
+
+  return self;
+}
+
+static mrb_value mrb_arg_str_val(mrb_state *mrb, mrb_value self)
+{
+  arg_str *data;
+  mrb_int idx = 0;
+  data = (arg_str *)DATA_PTR(self);
+  mrb_get_args(mrb, "|i", &idx);
+  if(idx >= data->definition->count) {
+    mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid index");
+  }
+
+  return mrb_str_new_cstr(mrb, data->definition->sval[idx]);
 }
 
 static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
@@ -321,11 +387,15 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
 
   arg_int_c = mrb_define_class_under(mrb, argtable, "Integer", mrb->object_class);
   mrb_define_method(mrb, arg_int_c, "initialize", mrb_arg_int_init, MRB_ARGS_REQ(4));
-  mrb_define_method(mrb, arg_int_c, "value",      mrb_arg_int_ival, MRB_ARGS_ARG(0, 1));
+  mrb_define_method(mrb, arg_int_c, "value",      mrb_arg_int_val,  MRB_ARGS_ARG(0, 1));
 
   arg_dbl_c = mrb_define_class_under(mrb, argtable, "Double", mrb->object_class);
+  mrb_define_method(mrb, arg_dbl_c, "initialize", mrb_arg_dbl_init, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, arg_dbl_c, "value",      mrb_arg_dbl_val,  MRB_ARGS_ARG(0, 1));
 
   arg_str_c = mrb_define_class_under(mrb, argtable, "String", mrb->object_class);
+  mrb_define_method(mrb, arg_str_c, "initialize", mrb_arg_str_init, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, arg_str_c, "value",      mrb_arg_str_val,  MRB_ARGS_ARG(0, 1));
 
   DONE;
 }
