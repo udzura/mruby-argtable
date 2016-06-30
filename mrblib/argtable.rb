@@ -9,6 +9,16 @@ class Argtable
     self
   end
 
+  def integer(short, long, datatype, glossary)
+    int = Integer.new(short, long, datatype, glossary)
+    @table[short] = int
+    if long
+      @table[long] = int
+    end
+    self.__push__ int
+    self
+  end
+
   attr_reader :table
 
   def [](k)

@@ -88,6 +88,36 @@ static mrb_value mrb_arg_lit_count(mrb_state *mrb, mrb_value self)
   return mrb_fixnum_value(data->definition->count);
 }
 
+static mrb_value mrb_arg_int_init(mrb_state *mrb, mrb_value self)
+{
+  arg_int *data;
+  char *shortopts, *longopts, *datatype, *glossary;
+
+  data = (arg_int *)DATA_PTR(self);
+  if (data) {
+    mrb_free(mrb, data);
+  }
+  DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_int);
+  DATA_PTR(self) = NULL;
+
+  mrb_get_args(mrb, "z!z!z!z!", &shortopts, &longopts, &datatype, &glossary);
+  data = (arg_int *)mrb_malloc(mrb, sizeof(arg_int));
+  data->definition = arg_int0(shortopts, longopts, datatype, glossary);
+  DATA_PTR(self) = data;
+
+  return self;
+}
+
+static mrb_value mrb_arg_int_ival(mrb_state *mrb, mrb_value self)
+{
+  arg_int *data;
+  mrb_int idx = 0;
+  data = (arg_int *)DATA_PTR(self);
+  mrb_get_args(mrb, "|i", &idx);
+
+  return mrb_fixnum_value(data->definition->ival[idx]);
+}
+
 static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
 {
   mrb_argtable_data *data;
@@ -128,6 +158,7 @@ static mrb_value mrb_argtable_compile(mrb_state *mrb, mrb_value self)
   mrb_argtable_data *data;
   mrb_value defs;
   void **argtable;
+  struct RClass *root = mrb_class_get(mrb, "Argtable");
 
   data = (mrb_argtable_data *)DATA_PTR(self);
   defs = data->arg_definitions;
@@ -140,8 +171,22 @@ static mrb_value mrb_argtable_compile(mrb_state *mrb, mrb_value self)
   int len = RARRAY_LEN(defs);
   argtable = (void **)mrb_malloc(mrb, sizeof(arg_lit)*(len + 1));
   for ( int i = 0; i < len; ++i ) {
-    arg_lit *d = (arg_lit *)DATA_PTR(mrb_ary_ref(mrb, defs, i));
-    argtable[i] = d->definition;
+    mrb_value obj = mrb_ary_ref(mrb, defs, i);
+    if (mrb_obj_is_kind_of(mrb, obj, mrb_class_get_under(mrb, root, "Literal"))){
+      arg_lit *d = (arg_lit *)DATA_PTR(obj);
+      argtable[i] = d->definition;
+    } else if (mrb_obj_is_kind_of(mrb, obj, mrb_class_get_under(mrb, root, "Integer"))){
+      arg_int *d = (arg_int *)DATA_PTR(obj);
+      argtable[i] = d->definition;
+    } else if (mrb_obj_is_kind_of(mrb, obj, mrb_class_get_under(mrb, root, "Double"))){
+      arg_dbl *d = (arg_dbl *)DATA_PTR(obj);
+      argtable[i] = d->definition;
+    } else if (mrb_obj_is_kind_of(mrb, obj, mrb_class_get_under(mrb, root, "String"))){
+      arg_str *d = (arg_str *)DATA_PTR(obj);
+      argtable[i] = d->definition;
+    } else {
+      mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid definition type.");
+    }
   }
 
   argtable[len] = data->argend = arg_end(20);
@@ -254,7 +299,7 @@ static mrb_value mrb_argtable_help(mrb_state *mrb, mrb_value self)
 void mrb_mruby_argtable_gem_init(mrb_state *mrb)
 {
   struct RClass *argtable,
-    *arg_lit_c /* , *arg_int_c, *arg_dbl_c, *arg_str_c */;
+    *arg_lit_c, *arg_int_c, *arg_dbl_c, *arg_str_c;
   argtable = mrb_define_class(mrb, "Argtable", mrb->object_class);
   mrb_define_method(mrb, argtable, "initialize", mrb_argtable_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, argtable, "__push__",   mrb_argtable_push, MRB_ARGS_REQ(1));
@@ -270,6 +315,14 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
   arg_lit_c = mrb_define_class_under(mrb, argtable, "Literal", mrb->object_class);
   mrb_define_method(mrb, arg_lit_c, "initialize", mrb_arg_lit_init,  MRB_ARGS_REQ(3));
   mrb_define_method(mrb, arg_lit_c, "count",      mrb_arg_lit_count, MRB_ARGS_NONE());
+
+  arg_int_c = mrb_define_class_under(mrb, argtable, "Integer", mrb->object_class);
+  mrb_define_method(mrb, arg_int_c, "initialize", mrb_arg_int_init, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, arg_int_c, "value",      mrb_arg_int_ival, MRB_ARGS_ARG(0, 1));
+
+  arg_dbl_c = mrb_define_class_under(mrb, argtable, "Double", mrb->object_class);
+
+  arg_str_c = mrb_define_class_under(mrb, argtable, "String", mrb->object_class);
 
   DONE;
 }
