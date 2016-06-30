@@ -114,6 +114,9 @@ static mrb_value mrb_arg_int_ival(mrb_state *mrb, mrb_value self)
   mrb_int idx = 0;
   data = (arg_int *)DATA_PTR(self);
   mrb_get_args(mrb, "|i", &idx);
+  if(idx >= data->definition->count) {
+    mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid index");
+  }
 
   return mrb_fixnum_value(data->definition->ival[idx]);
 }

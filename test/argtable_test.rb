@@ -23,6 +23,16 @@ assert("Argtable#integer") do
   assert_equal t["c"].value, 9999
 end
 
+assert("Argtable#integer will raise") do
+  t = Argtable.new
+  t.integer("c", "count", "<c>", "My count")
+
+  t.parse(["prog", "-c", "9999"])
+  assert_raise(ArgumentError) do
+    t["c"].value(2)
+  end
+end
+
 assert("Argtable id mixed") do
   t = Argtable.new
   t.literal("v", "verbose", "You are verbose")
