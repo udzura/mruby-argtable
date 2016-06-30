@@ -1,5 +1,10 @@
 MRuby::Build.new do |conf|
-  toolchain :clang
+  if ENV['OSTYPE'] =~ /darwin/
+    toolchain :clang
+  else
+    toolchain :gcc
+  end
+
   conf.gembox 'default'
   conf.gem '../mruby-argtable'
   conf.enable_test
