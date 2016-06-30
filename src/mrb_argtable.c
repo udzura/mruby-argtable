@@ -1,7 +1,7 @@
 /*
 ** mrb_argtable.c - Argtable class
 **
-** Copyright (c) ["Uchio Kondo", "Stewart Heitmann"] 2016
+** Copyright (c) Uchio Kondo
 **
 ** See Copyright Notice in LICENSE
 */
@@ -9,6 +9,7 @@
 #include "mruby.h"
 #include "mruby/array.h"
 #include "mruby/data.h"
+#include "mruby/string.h"
 #include "mruby/error.h"
 #include "mrb_argtable.h"
 #include "argtable3.h"
@@ -21,6 +22,7 @@
 
 typedef struct mrb_argtable_data {
   void **argtable;
+  struct arg_end *argend;
   mrb_value arg_definitions;
 } mrb_argtable_data;
 
@@ -134,12 +136,36 @@ static mrb_value mrb_argtable_compile(mrb_state *mrb, mrb_value self)
     argtable[i] = d->definition;
   }
 
-  argtable[len] = arg_end(20);
+  argtable[len] = data->argend = arg_end(20);
   data->argtable = argtable;
 
-  arg_print_syntaxv(stderr, data->argtable, " ");
-
   return mrb_fixnum_value(len);
+}
+
+static mrb_value mrb_argtable_parse(mrb_state *mrb, mrb_value self)
+{
+  mrb_argtable_data *data;
+  mrb_int argc;
+  mrb_value *argv;
+  mrb_get_args(mrb, "a", &argv, &argc);
+
+  char **argv_ = (char **)mrb_malloc(mrb, sizeof(char *) * (argc + 1));
+  for(int i = 0; i < argc; i++) {
+    mrb_value strv = mrb_convert_type(mrb, argv[i], MRB_TT_STRING, "String", "to_str");
+    char *buf = (char *)mrb_string_value_cstr(mrb, &strv);
+    argv_[i] = buf;
+  }
+  argv_[argc] = NULL;
+
+  data = (mrb_argtable_data *)DATA_PTR(self);
+  int nerrors = arg_parse(argc, argv_, data->argtable);
+
+  if (nerrors == 0) {
+    return mrb_true_value();
+  } else {
+    arg_print_errors(stderr, data->argend, "prog");
+    return mrb_false_value();
+  }
 }
 
 static mrb_value mrb_argtable_syntax(mrb_state *mrb, mrb_value self)
@@ -210,22 +236,23 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
 {
   struct RClass *argtable,
     *arg_lit_c /* , *arg_int_c, *arg_dbl_c, *arg_str_c */;
-    argtable = mrb_define_class(mrb, "Argtable", mrb->object_class);
-    mrb_define_method(mrb, argtable, "initialize", mrb_argtable_init, MRB_ARGS_NONE());
-    mrb_define_method(mrb, argtable, "push",       mrb_argtable_push, MRB_ARGS_REQ(1));
-    mrb_define_method(mrb, argtable, "compile",    mrb_argtable_compile, MRB_ARGS_NONE());
-    mrb_define_method(mrb, argtable, "help",       mrb_argtable_syntax, MRB_ARGS_ARG(0, 1));
-    mrb_define_method(mrb, argtable, "glossary",   mrb_argtable_glossary, MRB_ARGS_NONE());
+  argtable = mrb_define_class(mrb, "Argtable", mrb->object_class);
+  mrb_define_method(mrb, argtable, "initialize", mrb_argtable_init, MRB_ARGS_NONE());
+  mrb_define_method(mrb, argtable, "push",       mrb_argtable_push, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, argtable, "compile",    mrb_argtable_compile, MRB_ARGS_NONE());
+  mrb_define_method(mrb, argtable, "parse",      mrb_argtable_parse, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, argtable, "help",       mrb_argtable_syntax, MRB_ARGS_ARG(0, 1));
+  mrb_define_method(mrb, argtable, "glossary",   mrb_argtable_glossary, MRB_ARGS_NONE());
 
-    /* samples... */
-    mrb_define_class_method(mrb, argtable, "sample", mrb_argtable_hi, MRB_ARGS_NONE());
-    mrb_define_class_method(mrb, argtable, "help", mrb_argtable_help, MRB_ARGS_NONE());
+  /* samples... */
+  mrb_define_class_method(mrb, argtable, "sample", mrb_argtable_hi, MRB_ARGS_NONE());
+  mrb_define_class_method(mrb, argtable, "help", mrb_argtable_help, MRB_ARGS_NONE());
 
-    arg_lit_c = mrb_define_class_under(mrb, argtable, "Literal", mrb->object_class);
-    mrb_define_method(mrb, arg_lit_c, "initialize", mrb_arg_lit_init,  MRB_ARGS_REQ(3));
-    mrb_define_method(mrb, arg_lit_c, "count",      mrb_arg_lit_count, MRB_ARGS_NONE());
+  arg_lit_c = mrb_define_class_under(mrb, argtable, "Literal", mrb->object_class);
+  mrb_define_method(mrb, arg_lit_c, "initialize", mrb_arg_lit_init,  MRB_ARGS_REQ(3));
+  mrb_define_method(mrb, arg_lit_c, "count",      mrb_arg_lit_count, MRB_ARGS_NONE());
 
-    DONE;
+  DONE;
 }
 
 void mrb_mruby_argtable_gem_final(mrb_state *mrb)
