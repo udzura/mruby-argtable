@@ -326,45 +326,6 @@ static mrb_value mrb_argtable_glossary(mrb_state *mrb, mrb_value self)
   return mrb_nil_value();
 }
 
-/* argtable sample */
-
-static mrb_value mrb_argtable_hi(mrb_state *mrb, mrb_value self)
-{
-  struct arg_lit *a = arg_lit0("a", "a-value", "The a value");
-  struct arg_end *end = arg_end(20);
-  void *argtable[] = {a, end};
-
-  char *argv[3];
-  argv[0] = strdup("prog");
-  argv[1] = strdup("-a");
-  argv[2] = NULL;
-  int nerrors = arg_parse(2, argv, argtable);
-  if (nerrors == 0) {
-    printf("-a = %d\n", a->count);
-  } else {
-    arg_print_errors(stdout,end,"prog");
-  }
-
-  arg_freetable(argtable, sizeof(argtable)/sizeof(argtable[0]));
-
-  return mrb_fixnum_value(nerrors);
-}
-
-static mrb_value mrb_argtable_help(mrb_state *mrb, mrb_value self)
-{
-  struct arg_lit *a = arg_lit0("a", "a-value", "The a value");
-  struct arg_end *end = arg_end(20);
-  void *argtable[] = {a, end};
-
-  printf("-- syntax\n");
-  arg_print_syntax(stderr, argtable, " ");
-
-  printf("\n-- glossary\n");
-  arg_print_glossary(stderr, argtable, " %-25s %s\n");
-
-  return mrb_nil_value();
-}
-
 void mrb_mruby_argtable_gem_init(mrb_state *mrb)
 {
   struct RClass *argtable,
@@ -376,10 +337,6 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
   mrb_define_method(mrb, argtable, "parse",      mrb_argtable_parse, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, argtable, "help",       mrb_argtable_syntax, MRB_ARGS_ARG(0, 1));
   mrb_define_method(mrb, argtable, "glossary",   mrb_argtable_glossary, MRB_ARGS_NONE());
-
-  /* samples... */
-  mrb_define_class_method(mrb, argtable, "sample", mrb_argtable_hi, MRB_ARGS_NONE());
-  mrb_define_class_method(mrb, argtable, "help", mrb_argtable_help, MRB_ARGS_NONE());
 
   arg_lit_c = mrb_define_class_under(mrb, argtable, "Literal", mrb->object_class);
   mrb_define_method(mrb, arg_lit_c, "initialize", mrb_arg_lit_init,  MRB_ARGS_REQ(3));
