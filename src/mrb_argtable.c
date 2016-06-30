@@ -151,7 +151,7 @@ static mrb_value mrb_arg_dbl_val(mrb_state *mrb, mrb_value self)
     mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid index");
   }
 
-  return mrb_float_value(mrb, (float)data->definition->dval[idx]);
+  return mrb_float_value(mrb, (double)data->definition->dval[idx]);
 }
 
 static mrb_value mrb_arg_str_init(mrb_state *mrb, mrb_value self)

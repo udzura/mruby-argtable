@@ -56,11 +56,9 @@ assert("Argtable#parse when mixed") do
   t.double("s", "seconds", "<t>", "My seconds")
   t.string("n", "name", "<n>", "My name")
 
-  t.parse(["prog", "-c", "9999", "--verbose"])
+  t.parse(["prog", "-c", "9999", "--verbose", "--name=udzura", "-s", "12.25"])
   assert_equal t["v"].count, 1
   assert_equal t["c"].value, 9999
-
-  t.parse(["prog", "--name=udzura", "-s", "12.5"])
   assert_equal t["n"].value, "udzura"
-  assert_equal t["s"].value, 12.5
+  assert_equal t["s"].value, 12.25
 end
