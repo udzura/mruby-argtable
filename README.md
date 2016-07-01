@@ -8,8 +8,20 @@ Argtable wrapper
 
 ```ruby
 MRuby::Build.new do |conf|
-  conf.gem :github => 'udzura/mruby-argtable'
+  conf.gem :mgem => 'mruby-argtable'
 end
+```
+
+- or add mgem dependency like:
+
+```ruby
+MRuby::Gem::Specification.new('your-cli') do |spec|
+  spec.bins = ["your-cli"]
+
+  spec.add_dependency 'mruby-argtable', mgem: 'mruby-argtable'
+  #...
+end
+# This pattern is useful for mruby-cli bundle
 ```
 
 ## example
