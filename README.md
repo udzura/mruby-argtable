@@ -28,7 +28,7 @@ t["c"].value #=> 9999
 t["n"].value #=> "udzura"
 t["s"].value #=> 12.25
 
-t.glossry
+t.glossary
 # -v, --verbose             You are verbose
 # -c, --count=<c>           My count
 # -s, --seconds=<t>         My seconds
