@@ -16,6 +16,7 @@ MRuby::Gem::Specification.new('mruby-argtable') do |spec|
 
     file header do
       sh "mkdir -p #{File.dirname(argtable_dir)}"
+      sh "test -d #{argtable_dir} && rm -rf #{argtable_dir}"
       sh "git clone https://github.com/argtable/argtable3.git #{argtable_dir}"
     end
 
