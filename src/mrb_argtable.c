@@ -28,6 +28,7 @@ typedef struct mrb_argtable_data {
   void **argtable;
   struct arg_end *argend;
   mrb_value arg_definitions;
+  bool show_error;
 } mrb_argtable_data;
 
 void mrb_argtable_free(mrb_state *mrb, void *p)
@@ -201,10 +202,12 @@ static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
   data = (mrb_argtable_data *)mrb_malloc(mrb, sizeof(mrb_argtable_data));
   data->arg_definitions = mrb_ary_new(mrb);
   data->argtable = NULL;
+  data->show_error = true; /* This will be updated */
   DATA_PTR(self) = data;
 
   mrb_value table = mrb_hash_new(mrb);
   mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@table"), table);
+
 
   return self;
 }
@@ -258,7 +261,8 @@ static mrb_value mrb_argtable_compile(mrb_state *mrb, mrb_value self)
     }
   }
 
-  argtable[len] = data->argend = arg_end(20);
+  argtable[len] = arg_end(20);
+  data->argend = argtable[len];
   data->argtable = argtable;
 
   return mrb_fixnum_value(len);
@@ -287,12 +291,13 @@ static mrb_value mrb_argtable_parse(mrb_state *mrb, mrb_value self)
 
   int nerrors = arg_parse(argc, argv_, data->argtable);
 
-  if (nerrors == 0) {
-    return mrb_true_value();
-  } else {
-    arg_print_errors(stderr, data->argend, "prog");
-    return mrb_false_value();
+  if (nerrors != 0) {
+    if(data->show_error) {
+      arg_print_errors(stderr, data->argend, argv_[0]);
+    }
   }
+
+  return mrb_fixnum_value(nerrors);
 }
 
 static mrb_value mrb_argtable_syntax(mrb_state *mrb, mrb_value self)

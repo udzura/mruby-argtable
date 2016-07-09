@@ -35,7 +35,7 @@ end
 
 assert("Argtable#double") do
   t = Argtable.new
-  t.double("s", "seconds", "<t>", "My seconds")
+  t.double("s", "seconds", "<s>", "My seconds")
 
   t.parse(["prog", "-s", "10.5"])
   assert_equal t["s"].value, 10.5
