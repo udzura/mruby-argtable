@@ -38,7 +38,14 @@ class Argtable
     self
   end
 
-  attr_reader :table, :barestring
+  def enable_catchall(datatype, glossary, count)
+    str = String.new(nil, nil, datatype, glossary, count)
+    @catchall ||= str
+    self.__push__ str
+    self
+  end
+
+  attr_reader :table, :barestring, :catchall
 
   def options(idx=nil)
     return @options unless idx

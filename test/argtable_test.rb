@@ -49,7 +49,7 @@ assert("Argtable#string") do
   assert_equal t["n"].value, "udzura"
 end
 
-assert("Argtable#string wittout optname") do
+assert("Argtable#string without optname") do
   t = Argtable.new
   t.string(nil, nil, "<yourname>", "My name")
   t.string("l", "last", "<lastname>", "My last name")
@@ -62,6 +62,18 @@ assert("Argtable#string wittout optname") do
   assert_equal errors, 0
   assert_equal t.barestring.value, "ryosuke"
   assert_equal t['l'].value, "matsumoto"
+end
+
+assert("Argtable#catchall") do
+  t = Argtable.new
+  t.string("n", "name", "<n>", "My name")
+  t.enable_catchall("<rest>, [<rest>...]", "Tha name of rest", 100)
+  t.glossary
+
+  t.parse(["prog", "-n", "udzura", "uchio", "akubi"])
+  assert_equal t['n'].value, "udzura"
+  assert_equal t.catchall.value(0), "uchio"
+  assert_equal t.catchall.value(1), "akubi"
 end
 
 assert("Argtable#parse when mixed") do

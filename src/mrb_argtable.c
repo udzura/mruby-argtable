@@ -13,6 +13,7 @@
 #include "mruby/hash.h"
 #include "mruby/variable.h"
 #include "mruby/error.h"
+#include "mruby/value.h"
 #include "mrb_argtable.h"
 #include "argtable3.h"
 
@@ -56,6 +57,8 @@ MRB_ARGTABLE_DATA_TYPE(arg_str);
  */
 
 #define MRB_ARGTABLE_DATA_TYPE_OF(argtable_s) mrb_ ## argtable_s ## _data_type
+
+#define ARG_MAX 1024
 
 static const struct mrb_data_type mrb_argtable_data_type = {
   "mrb_argtable_data", mrb_argtable_free,
@@ -159,6 +162,7 @@ static mrb_value mrb_arg_str_init(mrb_state *mrb, mrb_value self)
 {
   arg_str *data;
   char *shortopts, *longopts, *datatype, *glossary;
+  int catchall_maxsize = 0;
 
   data = (arg_str *)DATA_PTR(self);
   if (data) {
@@ -167,13 +171,17 @@ static mrb_value mrb_arg_str_init(mrb_state *mrb, mrb_value self)
   DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_str);
   DATA_PTR(self) = NULL;
 
-  mrb_get_args(mrb, "z!z!z!z!", &shortopts, &longopts, &datatype, &glossary);
+  mrb_get_args(mrb, "z!z!z!z!|i", &shortopts, &longopts, &datatype, &glossary, &catchall_maxsize);
   data = (arg_str *)mrb_malloc(mrb, sizeof(arg_str));
 
   if(shortopts || longopts) {
     data->definition = arg_str0(shortopts, longopts, datatype, glossary);
   } else {
-    data->definition = arg_str1(NULL, NULL, datatype, glossary);
+    if(catchall_maxsize != 0) {
+      data->definition = arg_strn(NULL, NULL, datatype, 0, catchall_maxsize, glossary);
+    } else {
+      data->definition = arg_str1(NULL, NULL, datatype, glossary);
+    }
   }
   DATA_PTR(self) = data;
 
@@ -363,7 +371,7 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
   mrb_define_method(mrb, arg_dbl_c, "value",      mrb_arg_dbl_val,  MRB_ARGS_ARG(0, 1));
 
   arg_str_c = mrb_define_class_under(mrb, argtable, "String", mrb->object_class);
-  mrb_define_method(mrb, arg_str_c, "initialize", mrb_arg_str_init, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, arg_str_c, "initialize", mrb_arg_str_init, MRB_ARGS_ARG(4, 1));
   mrb_define_method(mrb, arg_str_c, "value",      mrb_arg_str_val,  MRB_ARGS_ARG(0, 1));
 
   DONE;
