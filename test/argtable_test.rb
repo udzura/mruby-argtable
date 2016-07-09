@@ -49,6 +49,21 @@ assert("Argtable#string") do
   assert_equal t["n"].value, "udzura"
 end
 
+assert("Argtable#string wittout optname") do
+  t = Argtable.new
+  t.string(nil, nil, "<yourname>", "My name")
+  t.string("l", "last", "<lastname>", "My last name")
+
+  t.parse(["prog", "uchio", "-l", "kondo"])
+  assert_equal t.barestring.value, "uchio"
+  assert_equal t['l'].value, "kondo"
+
+  errors = t.parse(["prog", "-l", "matsumoto", "ryosuke"])
+  assert_equal errors, 0
+  assert_equal t.barestring.value, "ryosuke"
+  assert_equal t['l'].value, "matsumoto"
+end
+
 assert("Argtable#parse when mixed") do
   t = Argtable.new
   t.literal("v", "verbose", "You are verbose")

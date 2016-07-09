@@ -169,7 +169,12 @@ static mrb_value mrb_arg_str_init(mrb_state *mrb, mrb_value self)
 
   mrb_get_args(mrb, "z!z!z!z!", &shortopts, &longopts, &datatype, &glossary);
   data = (arg_str *)mrb_malloc(mrb, sizeof(arg_str));
-  data->definition = arg_str0(shortopts, longopts, datatype, glossary);
+
+  if(shortopts || longopts) {
+    data->definition = arg_str0(shortopts, longopts, datatype, glossary);
+  } else {
+    data->definition = arg_str1(NULL, NULL, datatype, glossary);
+  }
   DATA_PTR(self) = data;
 
   return self;
@@ -208,6 +213,8 @@ static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
   mrb_value table = mrb_hash_new(mrb);
   mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@table"), table);
 
+  mrb_value options = mrb_ary_new(mrb);
+  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@options"), options);
 
   return self;
 }
