@@ -201,6 +201,18 @@ static mrb_value mrb_arg_str_val(mrb_state *mrb, mrb_value self)
   return mrb_str_new_cstr(mrb, data->definition->sval[idx]);
 }
 
+static mrb_value mrb_arg_str_values(mrb_state *mrb, mrb_value self)
+{
+  arg_str *data;
+  data = (arg_str *)DATA_PTR(self);
+  mrb_value values = mrb_ary_new(mrb);
+  for(int i = 0; i < data->definition->count; ++i) {
+    mrb_ary_push(mrb, values, mrb_str_new_cstr(mrb, data->definition->sval[i]));
+  }
+
+  return values;
+}
+
 static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
 {
   mrb_argtable_data *data;
@@ -373,6 +385,7 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
   arg_str_c = mrb_define_class_under(mrb, argtable, "String", mrb->object_class);
   mrb_define_method(mrb, arg_str_c, "initialize", mrb_arg_str_init, MRB_ARGS_ARG(4, 1));
   mrb_define_method(mrb, arg_str_c, "value",      mrb_arg_str_val,  MRB_ARGS_ARG(0, 1));
+  mrb_define_method(mrb, arg_str_c, "values",     mrb_arg_str_values,  MRB_ARGS_NONE());
 
   DONE;
 }

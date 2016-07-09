@@ -68,12 +68,13 @@ assert("Argtable#catchall") do
   t = Argtable.new
   t.string("n", "name", "<n>", "My name")
   t.enable_catchall("<rest>, [<rest>...]", "Tha name of rest", 100)
-  t.glossary
 
   t.parse(["prog", "-n", "udzura", "uchio", "akubi"])
   assert_equal t['n'].value, "udzura"
   assert_equal t.catchall.value(0), "uchio"
   assert_equal t.catchall.value(1), "akubi"
+
+  assert_equal t.catchall.values, ["uchio", "akubi"]
 end
 
 assert("Argtable#parse when mixed") do
