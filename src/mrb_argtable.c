@@ -13,6 +13,7 @@
 #include "mruby/hash.h"
 #include "mruby/variable.h"
 #include "mruby/error.h"
+#include "mruby/value.h"
 #include "mrb_argtable.h"
 #include "argtable3.h"
 
@@ -28,6 +29,7 @@ typedef struct mrb_argtable_data {
   void **argtable;
   struct arg_end *argend;
   mrb_value arg_definitions;
+  bool show_error;
 } mrb_argtable_data;
 
 void mrb_argtable_free(mrb_state *mrb, void *p)
@@ -55,6 +57,8 @@ MRB_ARGTABLE_DATA_TYPE(arg_str);
  */
 
 #define MRB_ARGTABLE_DATA_TYPE_OF(argtable_s) mrb_ ## argtable_s ## _data_type
+
+#define ARG_MAX 1024
 
 static const struct mrb_data_type mrb_argtable_data_type = {
   "mrb_argtable_data", mrb_argtable_free,
@@ -158,6 +162,7 @@ static mrb_value mrb_arg_str_init(mrb_state *mrb, mrb_value self)
 {
   arg_str *data;
   char *shortopts, *longopts, *datatype, *glossary;
+  int catchall_maxsize = 0;
 
   data = (arg_str *)DATA_PTR(self);
   if (data) {
@@ -166,9 +171,18 @@ static mrb_value mrb_arg_str_init(mrb_state *mrb, mrb_value self)
   DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_str);
   DATA_PTR(self) = NULL;
 
-  mrb_get_args(mrb, "z!z!z!z!", &shortopts, &longopts, &datatype, &glossary);
+  mrb_get_args(mrb, "z!z!z!z!|i", &shortopts, &longopts, &datatype, &glossary, &catchall_maxsize);
   data = (arg_str *)mrb_malloc(mrb, sizeof(arg_str));
-  data->definition = arg_str0(shortopts, longopts, datatype, glossary);
+
+  if(shortopts || longopts) {
+    data->definition = arg_str0(shortopts, longopts, datatype, glossary);
+  } else {
+    if(catchall_maxsize != 0) {
+      data->definition = arg_strn(NULL, NULL, datatype, 0, catchall_maxsize, glossary);
+    } else {
+      data->definition = arg_str1(NULL, NULL, datatype, glossary);
+    }
+  }
   DATA_PTR(self) = data;
 
   return self;
@@ -201,10 +215,14 @@ static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
   data = (mrb_argtable_data *)mrb_malloc(mrb, sizeof(mrb_argtable_data));
   data->arg_definitions = mrb_ary_new(mrb);
   data->argtable = NULL;
+  data->show_error = true; /* This will be updated */
   DATA_PTR(self) = data;
 
   mrb_value table = mrb_hash_new(mrb);
   mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@table"), table);
+
+  mrb_value options = mrb_ary_new(mrb);
+  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@options"), options);
 
   return self;
 }
@@ -258,7 +276,8 @@ static mrb_value mrb_argtable_compile(mrb_state *mrb, mrb_value self)
     }
   }
 
-  argtable[len] = data->argend = arg_end(20);
+  argtable[len] = arg_end(20);
+  data->argend = argtable[len];
   data->argtable = argtable;
 
   return mrb_fixnum_value(len);
@@ -287,12 +306,13 @@ static mrb_value mrb_argtable_parse(mrb_state *mrb, mrb_value self)
 
   int nerrors = arg_parse(argc, argv_, data->argtable);
 
-  if (nerrors == 0) {
-    return mrb_true_value();
-  } else {
-    arg_print_errors(stderr, data->argend, "prog");
-    return mrb_false_value();
+  if (nerrors != 0) {
+    if(data->show_error) {
+      arg_print_errors(stderr, data->argend, argv_[0]);
+    }
   }
+
+  return mrb_fixnum_value(nerrors);
 }
 
 static mrb_value mrb_argtable_syntax(mrb_state *mrb, mrb_value self)
@@ -351,7 +371,7 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
   mrb_define_method(mrb, arg_dbl_c, "value",      mrb_arg_dbl_val,  MRB_ARGS_ARG(0, 1));
 
   arg_str_c = mrb_define_class_under(mrb, argtable, "String", mrb->object_class);
-  mrb_define_method(mrb, arg_str_c, "initialize", mrb_arg_str_init, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, arg_str_c, "initialize", mrb_arg_str_init, MRB_ARGS_ARG(4, 1));
   mrb_define_method(mrb, arg_str_c, "value",      mrb_arg_str_val,  MRB_ARGS_ARG(0, 1));
 
   DONE;
