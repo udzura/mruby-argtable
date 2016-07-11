@@ -1,4 +1,13 @@
 class Argtable
+  module OptionsCommon
+    def exist?
+      self.count > 0
+    end
+  end
+  [Literal, Integer, Double, String].each do |klass|
+    klass.include OptionsCommon
+  end
+
   def literal(short, long, glossary)
     lit = Literal.new(short, long, glossary)
     @table[short] = lit if short
