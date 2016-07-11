@@ -64,19 +64,6 @@ assert("Argtable#string without optname") do
   assert_equal t['l'].value, "matsumoto"
 end
 
-assert("Argtable#catchall") do
-  t = Argtable.new
-  t.string("n", "name", "<n>", "My name")
-  t.enable_catchall("<rest>, [<rest>...]", "Tha name of rest", 100)
-
-  t.parse(["prog", "-n", "udzura", "uchio", "akubi"])
-  assert_equal t['n'].value, "udzura"
-  assert_equal t.catchall.value(0), "uchio"
-  assert_equal t.catchall.value(1), "akubi"
-
-  assert_equal t.catchall.values, ["uchio", "akubi"]
-end
-
 assert("Argtable#parse when mixed") do
   t = Argtable.new
   t.literal("v", "verbose", "You are verbose")

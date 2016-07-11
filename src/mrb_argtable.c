@@ -125,6 +125,12 @@ static mrb_value mrb_arg_int_val(mrb_state *mrb, mrb_value self)
   return mrb_fixnum_value(data->definition->ival[idx]);
 }
 
+static mrb_value mrb_arg_int_count(mrb_state *mrb, mrb_value self)
+{
+  arg_int *data = (arg_int *)DATA_PTR(self);
+  return mrb_fixnum_value(data->definition->count);
+}
+
 static mrb_value mrb_arg_dbl_init(mrb_state *mrb, mrb_value self)
 {
   arg_dbl *data;
@@ -156,6 +162,12 @@ static mrb_value mrb_arg_dbl_val(mrb_state *mrb, mrb_value self)
   }
 
   return mrb_float_value(mrb, (double)data->definition->dval[idx]);
+}
+
+static mrb_value mrb_arg_dbl_count(mrb_state *mrb, mrb_value self)
+{
+  arg_dbl *data = (arg_dbl *)DATA_PTR(self);
+  return mrb_fixnum_value(data->definition->count);
 }
 
 static mrb_value mrb_arg_str_init(mrb_state *mrb, mrb_value self)
@@ -199,6 +211,12 @@ static mrb_value mrb_arg_str_val(mrb_state *mrb, mrb_value self)
   }
 
   return mrb_str_new_cstr(mrb, data->definition->sval[idx]);
+}
+
+static mrb_value mrb_arg_str_count(mrb_state *mrb, mrb_value self)
+{
+  arg_str *data = (arg_str *)DATA_PTR(self);
+  return mrb_fixnum_value(data->definition->count);
 }
 
 static mrb_value mrb_arg_str_values(mrb_state *mrb, mrb_value self)
@@ -377,14 +395,17 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
   arg_int_c = mrb_define_class_under(mrb, argtable, "Integer", mrb->object_class);
   mrb_define_method(mrb, arg_int_c, "initialize", mrb_arg_int_init, MRB_ARGS_REQ(4));
   mrb_define_method(mrb, arg_int_c, "value",      mrb_arg_int_val,  MRB_ARGS_ARG(0, 1));
+  mrb_define_method(mrb, arg_int_c, "count",      mrb_arg_int_count, MRB_ARGS_NONE());
 
   arg_dbl_c = mrb_define_class_under(mrb, argtable, "Double", mrb->object_class);
   mrb_define_method(mrb, arg_dbl_c, "initialize", mrb_arg_dbl_init, MRB_ARGS_REQ(4));
   mrb_define_method(mrb, arg_dbl_c, "value",      mrb_arg_dbl_val,  MRB_ARGS_ARG(0, 1));
+  mrb_define_method(mrb, arg_dbl_c, "count",      mrb_arg_dbl_count, MRB_ARGS_NONE());
 
   arg_str_c = mrb_define_class_under(mrb, argtable, "String", mrb->object_class);
   mrb_define_method(mrb, arg_str_c, "initialize", mrb_arg_str_init, MRB_ARGS_ARG(4, 1));
   mrb_define_method(mrb, arg_str_c, "value",      mrb_arg_str_val,  MRB_ARGS_ARG(0, 1));
+  mrb_define_method(mrb, arg_str_c, "count",      mrb_arg_str_count, MRB_ARGS_NONE());
   mrb_define_method(mrb, arg_str_c, "values",     mrb_arg_str_values,  MRB_ARGS_NONE());
 
   DONE;
