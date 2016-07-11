@@ -8,7 +8,7 @@ Argtable wrapper
 
 ```ruby
 MRuby::Build.new do |conf|
-  conf.gem :mgem => 'mruby-argtable'
+  conf.gem mgem: 'mruby-argtable'
 end
 ```
 
@@ -22,6 +22,18 @@ MRuby::Gem::Specification.new('your-cli') do |spec|
   #...
 end
 # This pattern is useful for mruby-cli bundle
+```
+
+- **NOTE**: `argtable2` library(as application) or dev headers(when you build) are required.
+  - Ubuntu/Debian: `apt-get install libargtable2-dev`
+  - RH-ish: `yum install argtable-devel`
+
+### Want to use statically linked version?
+
+- Specify the branch(and it checks-out and uses [argtable3](https://github.com/argtable/argtable3)).
+
+```ruby
+conf.gem github: 'udzura/mruby-argtable', branch: 'static-link-argtable3'
 ```
 
 ## example
@@ -46,6 +58,8 @@ t.glossary
 # -s, --seconds=<t>         My seconds
 # -n, --name=<n>            My name
 ```
+
+- [See more examples as test case.](https://github.com/udzura/mruby-argtable/blob/master/test/argtable_test.rb)
 
 ## License
 
