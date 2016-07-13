@@ -11,6 +11,7 @@ matrix:
 branches:
   only:
     - master
+    - static-link-argtable3
 
 before_install:
   - sudo apt-get -qq update
