@@ -15,7 +15,7 @@
 #include "mruby/error.h"
 #include "mruby/value.h"
 #include "mrb_argtable.h"
-#include "argtable2.h"
+#include "argtable3.h"
 
 #include <stdio.h>
 #include <string.h>
