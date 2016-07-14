@@ -15,8 +15,10 @@ MRuby::Gem::Specification.new('mruby-argtable') do |spec|
     end
 
     file argtable_header(build) do
-      sh "mkdir -p #{File.dirname(argtable_dir(build))}"
-      sh "git clone https://github.com/argtable/argtable3.git #{argtable_dir(build)}"
+      unless File.exist? argtable_dir(build)
+        sh "mkdir -p #{File.dirname(argtable_dir(build))}"
+        sh "git clone https://github.com/argtable/argtable3.git #{argtable_dir(build)}"
+      end
     end
 
     file "#{argtable_objs_dir(build)}/argtable3.o" => argtable_header(build) do
