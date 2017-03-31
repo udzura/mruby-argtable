@@ -37,4 +37,7 @@ MRuby::Gem::Specification.new('mruby-argtable') do |spec|
   end
 
   spec.bundle_argtable
+
+  spec.cc.flags << "-DEOVERFLOW_=EOVERFLOW"
+  spec.build.cc.flags << "-DEOVERFLOW_=EOVERFLOW"
 end
