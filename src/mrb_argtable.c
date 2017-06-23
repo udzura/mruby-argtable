@@ -382,6 +382,7 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
 {
   struct RClass *argtable, *arg_lit_c, *arg_int_c, *arg_dbl_c, *arg_str_c;
   argtable = mrb_define_class(mrb, "Argtable", mrb->object_class);
+  MRB_SET_INSTANCE_TT(argtable, MRB_TT_DATA);
   mrb_define_method(mrb, argtable, "initialize", mrb_argtable_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, argtable, "__push__", mrb_argtable_push, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, argtable, "compile", mrb_argtable_compile, MRB_ARGS_NONE());
@@ -390,20 +391,24 @@ void mrb_mruby_argtable_gem_init(mrb_state *mrb)
   mrb_define_method(mrb, argtable, "glossary", mrb_argtable_glossary, MRB_ARGS_NONE());
 
   arg_lit_c = mrb_define_class_under(mrb, argtable, "Literal", mrb->object_class);
+  MRB_SET_INSTANCE_TT(arg_lit_c, MRB_TT_DATA);
   mrb_define_method(mrb, arg_lit_c, "initialize", mrb_arg_lit_init, MRB_ARGS_REQ(3));
   mrb_define_method(mrb, arg_lit_c, "count", mrb_arg_lit_count, MRB_ARGS_NONE());
 
   arg_int_c = mrb_define_class_under(mrb, argtable, "Integer", mrb->object_class);
+  MRB_SET_INSTANCE_TT(arg_int_c, MRB_TT_DATA);
   mrb_define_method(mrb, arg_int_c, "initialize", mrb_arg_int_init, MRB_ARGS_REQ(4));
   mrb_define_method(mrb, arg_int_c, "value", mrb_arg_int_val, MRB_ARGS_ARG(0, 1));
   mrb_define_method(mrb, arg_int_c, "count", mrb_arg_int_count, MRB_ARGS_NONE());
 
   arg_dbl_c = mrb_define_class_under(mrb, argtable, "Double", mrb->object_class);
+  MRB_SET_INSTANCE_TT(arg_dbl_c, MRB_TT_DATA);
   mrb_define_method(mrb, arg_dbl_c, "initialize", mrb_arg_dbl_init, MRB_ARGS_REQ(4));
   mrb_define_method(mrb, arg_dbl_c, "value", mrb_arg_dbl_val, MRB_ARGS_ARG(0, 1));
   mrb_define_method(mrb, arg_dbl_c, "count", mrb_arg_dbl_count, MRB_ARGS_NONE());
 
   arg_str_c = mrb_define_class_under(mrb, argtable, "String", mrb->object_class);
+  MRB_SET_INSTANCE_TT(arg_str_c, MRB_TT_DATA);
   mrb_define_method(mrb, arg_str_c, "initialize", mrb_arg_str_init, MRB_ARGS_ARG(4, 1));
   mrb_define_method(mrb, arg_str_c, "value", mrb_arg_str_val, MRB_ARGS_ARG(0, 1));
   mrb_define_method(mrb, arg_str_c, "count", mrb_arg_str_count, MRB_ARGS_NONE());
