@@ -26,19 +26,16 @@
 
 #define DONE mrb_gc_arena_restore(mrb, 0);
 
-#pragma GCC diagnostic ignored "-Wdeclaration-after-statement"
-
 typedef struct mrb_argtable_data {
   void **argtable;
   struct arg_end *argend;
-  mrb_value arg_definitions;
   bool show_error;
 } mrb_argtable_data;
 
 void mrb_argtable_free(mrb_state *mrb, void *p)
 {
   mrb_argtable_data *argtable_s = (mrb_argtable_data *)p;
-  arg_freetable(argtable_s->argtable, sizeof(argtable_s->argtable) / sizeof(argtable_s->argtable[0]));
+  /* arg_freetable(argtable_s->argtable, sizeof(argtable_s->argtable) / sizeof(argtable_s->argtable[0])); */
   mrb_free(mrb, argtable_s);
 }
 
@@ -46,8 +43,13 @@ void mrb_argtable_free(mrb_state *mrb, void *p)
   typedef struct argtable_s##_data {                                                                                                       \
     struct argtable_s *definition;                                                                                                         \
   } argtable_s;                                                                                                                            \
+  void mrb_argtable_##argtable_s##_free(mrb_state *mrb, void *p)                                                                           \
+  {                                                                                                                                        \
+    argtable_s *s = (argtable_s *)p;                                                                                                       \
+    mrb_free(mrb, s);                                                                                                                      \
+  }                                                                                                                                        \
   static const struct mrb_data_type mrb_##argtable_s##_data_type = {                                                                       \
-      #argtable_s, mrb_free,                                                                                                               \
+      #argtable_s, mrb_argtable_##argtable_s##_free,                                                                                       \
   }
 
 MRB_ARGTABLE_DATA_TYPE(arg_lit);
@@ -221,7 +223,6 @@ static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
   DATA_TYPE(self) = &mrb_argtable_data_type;
 
   data = (mrb_argtable_data *)mrb_malloc(mrb, sizeof(mrb_argtable_data));
-  data->arg_definitions = mrb_ary_new(mrb);
   data->argtable = NULL;
   data->show_error = true; /* This will be updated */
   DATA_PTR(self) = data;
@@ -232,18 +233,20 @@ static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
   mrb_value options = mrb_ary_new(mrb);
   mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@options"), options);
 
+  mrb_value arg_definitions = mrb_ary_new(mrb);
+  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "arg_definitions"), arg_definitions);
+
   return self;
 }
 
+#define MRB_ARG_CUR_DEFINITIONS mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "arg_definitions"))
+
 static mrb_value mrb_argtable_push(mrb_state *mrb, mrb_value self)
 {
-  mrb_argtable_data *data;
   mrb_value definition;
-
   mrb_get_args(mrb, "o", &definition);
 
-  data = (mrb_argtable_data *)DATA_PTR(self);
-  mrb_ary_push(mrb, data->arg_definitions, definition);
+  mrb_ary_push(mrb, MRB_ARG_CUR_DEFINITIONS, definition);
 
   return definition;
 }
@@ -256,7 +259,7 @@ static mrb_value mrb_argtable_compile(mrb_state *mrb, mrb_value self)
   struct RClass *root = mrb_class_get(mrb, "Argtable");
 
   data = (mrb_argtable_data *)DATA_PTR(self);
-  defs = data->arg_definitions;
+  defs = MRB_ARG_CUR_DEFINITIONS;
 
   if (!mrb_array_p(defs)) {
     mrb_sys_fail(mrb, "Something is wrong");
