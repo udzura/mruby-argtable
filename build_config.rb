@@ -7,5 +7,7 @@ MRuby::Build.new do |conf|
 
   conf.gembox 'default'
   conf.gem '../mruby-argtable'
+  conf.cc.flags << "-DEOVERFLOW_=EOVERFLOW"
   conf.enable_test
+  conf.enable_debug
 end
