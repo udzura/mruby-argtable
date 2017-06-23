@@ -10,6 +10,7 @@
 
 #include <mruby.h>
 #include <mruby/array.h>
+#include <mruby/class.h>
 #include <mruby/data.h>
 #include <mruby/error.h>
 #include <mruby/hash.h>
@@ -71,12 +72,7 @@ static mrb_value mrb_arg_lit_init(mrb_state *mrb, mrb_value self)
   arg_lit *data;
   char *shortopts, *longopts, *glossary;
 
-  data = (arg_lit *)DATA_PTR(self);
-  if (data) {
-    mrb_free(mrb, data);
-  }
   DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_lit);
-  DATA_PTR(self) = NULL;
 
   mrb_get_args(mrb, "zz!z", &shortopts, &longopts, &glossary);
   data = (arg_lit *)mrb_malloc(mrb, sizeof(arg_lit));
@@ -99,12 +95,7 @@ static mrb_value mrb_arg_int_init(mrb_state *mrb, mrb_value self)
   arg_int *data;
   char *shortopts, *longopts, *datatype, *glossary;
 
-  data = (arg_int *)DATA_PTR(self);
-  if (data) {
-    mrb_free(mrb, data);
-  }
   DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_int);
-  DATA_PTR(self) = NULL;
 
   mrb_get_args(mrb, "z!z!z!z!", &shortopts, &longopts, &datatype, &glossary);
   data = (arg_int *)mrb_malloc(mrb, sizeof(arg_int));
@@ -138,12 +129,7 @@ static mrb_value mrb_arg_dbl_init(mrb_state *mrb, mrb_value self)
   arg_dbl *data;
   char *shortopts, *longopts, *datatype, *glossary;
 
-  data = (arg_dbl *)DATA_PTR(self);
-  if (data) {
-    mrb_free(mrb, data);
-  }
   DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_dbl);
-  DATA_PTR(self) = NULL;
 
   mrb_get_args(mrb, "z!z!z!z!", &shortopts, &longopts, &datatype, &glossary);
   data = (arg_dbl *)mrb_malloc(mrb, sizeof(arg_dbl));
@@ -178,12 +164,7 @@ static mrb_value mrb_arg_str_init(mrb_state *mrb, mrb_value self)
   char *shortopts, *longopts, *datatype, *glossary;
   int catchall_maxsize = 0;
 
-  data = (arg_str *)DATA_PTR(self);
-  if (data) {
-    mrb_free(mrb, data);
-  }
   DATA_TYPE(self) = &MRB_ARGTABLE_DATA_TYPE_OF(arg_str);
-  DATA_PTR(self) = NULL;
 
   mrb_get_args(mrb, "z!z!z!z!|i", &shortopts, &longopts, &datatype, &glossary, &catchall_maxsize);
   data = (arg_str *)mrb_malloc(mrb, sizeof(arg_str));
@@ -237,12 +218,7 @@ static mrb_value mrb_argtable_init(mrb_state *mrb, mrb_value self)
 {
   mrb_argtable_data *data;
 
-  data = (mrb_argtable_data *)DATA_PTR(self);
-  if (data) {
-    mrb_free(mrb, data);
-  }
   DATA_TYPE(self) = &mrb_argtable_data_type;
-  DATA_PTR(self) = NULL;
 
   data = (mrb_argtable_data *)mrb_malloc(mrb, sizeof(mrb_argtable_data));
   data->arg_definitions = mrb_ary_new(mrb);
