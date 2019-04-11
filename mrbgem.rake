@@ -18,6 +18,7 @@ MRuby::Gem::Specification.new('mruby-argtable') do |spec|
       unless File.exist? argtable_dir(build)
         sh "mkdir -p #{File.dirname(argtable_dir(build))}"
         sh "git clone https://github.com/argtable/argtable3.git #{argtable_dir(build)}"
+        sh "cd #{argtable_dir(build)}/tools && ./build dist && cd ../ && cp dist/argtable3.* ."
       end
     end
 
